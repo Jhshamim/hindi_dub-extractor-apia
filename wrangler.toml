@@ -1,0 +1,8 @@
+name = "hindi-dub-extractor"
+main = "worker.ts"
+compatibility_date = "2024-03-08"
+
+# If you want to deploy to a custom domain, add it here
+# routes = [
+#   { pattern = "api.yourdomain.com/*", custom_domain = true }
+# ]

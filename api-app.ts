@@ -63,13 +63,13 @@ app.get("/api/extract", async (req, res) => {
         if (langMatch && uriMatch) {
           languages.push(langMatch[1]);
           const absoluteUri = uriMatch[1].startsWith('http') ? uriMatch[1] : `${domain}${uriMatch[1]}`;
-          audioUrls[langMatch[1]] = `${PROXY_URL}${absoluteUri}`;
+          audioUrls[langMatch[1]] = absoluteUri;
         }
       } else if (line.startsWith('#EXT-X-STREAM-INF')) {
         const nextLine = lines[i + 1]?.trim();
         if (nextLine && !nextLine.startsWith('#')) {
           const absoluteUri = nextLine.startsWith('http') ? nextLine : `${domain}${nextLine}`;
-          highestVideoUrl = `${PROXY_URL}${absoluteUri}`;
+          highestVideoUrl = absoluteUri;
         }
       }
     }
