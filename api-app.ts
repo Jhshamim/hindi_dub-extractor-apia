@@ -83,7 +83,7 @@ app.get("/api/extract", async (req, res) => {
     const files: Record<string, any> = {};
     for (const lang of languages) {
       files[lang] = {
-        m3u8_url: `${appUrl}/cache/${videoId}/${lang}_master.m3u8?domain=${encodeURIComponent(domain)}`,
+        m3u8_url: `${appUrl}/cache/${videoId}/${lang}_master.m3u8`,
         video_file_url: highestVideoUrl,
         audio_file_url: audioUrls[lang],
         language: lang
@@ -118,7 +118,9 @@ app.get("/cache/:videoId/:filename", async (req, res) => {
     }
     const targetLang = langMatch[1];
 
-    let domain = queryDomain || "https://as-cdn21.top";
+    // Defaulting to the primary domain since we removed the query parameter.
+    // If multiple domains are used in the future, we may need to pass this via the URL path.
+    const domain = queryDomain || "https://as-cdn21.top";
 
     const postUrl = `${domain}/player/index.php?data=${videoId}&do=getVideo`;
     const postData = `hash=${videoId}&r=${encodeURIComponent(domain + "/video/" + videoId)}`;
