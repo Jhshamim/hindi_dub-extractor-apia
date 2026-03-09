@@ -56,7 +56,8 @@ export default {
             "X-Requested-With": "XMLHttpRequest",
             "Referer": targetUrl
           },
-          body: postData.toString()
+          body: postData.toString(),
+          signal: AbortSignal.timeout(15000)
         });
 
         const data: any = await response.json();
@@ -72,32 +73,22 @@ export default {
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
             "Referer": domain + "/"
-          }
+          },
+          signal: AbortSignal.timeout(15000)
         });
 
         const m3u8Content = await m3u8Res.text();
         
-        // Extract available languages and their URLs
+        // Extract available languages
         const languages: string[] = [];
-        const audioUrls: Record<string, string> = {};
-        let highestVideoUrl = "";
         
         const lines = m3u8Content.split('\n');
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i].trim();
           if (line.startsWith('#EXT-X-MEDIA:TYPE=AUDIO')) {
             const langMatch = line.match(/LANGUAGE="([^"]+)"/);
-            const uriMatch = line.match(/URI="([^"]+)"/);
-            if (langMatch && uriMatch) {
+            if (langMatch && !languages.includes(langMatch[1])) {
               languages.push(langMatch[1]);
-              const absoluteUri = uriMatch[1].startsWith('http') ? uriMatch[1] : `${domain}${uriMatch[1]}`;
-              audioUrls[langMatch[1]] = absoluteUri;
-            }
-          } else if (line.startsWith('#EXT-X-STREAM-INF')) {
-            const nextLine = lines[i + 1]?.trim();
-            if (nextLine && !nextLine.startsWith('#')) {
-              const absoluteUri = nextLine.startsWith('http') ? nextLine : `${domain}${nextLine}`;
-              highestVideoUrl = absoluteUri;
             }
           }
         }
@@ -107,8 +98,6 @@ export default {
         for (const lang of languages) {
           files[lang] = {
             m3u8_url: `${appUrl}/cache/${videoId}/${lang}_master.m3u8`,
-            video_file_url: highestVideoUrl,
-            audio_file_url: audioUrls[lang],
             language: lang
           };
         }
@@ -150,7 +139,8 @@ export default {
             "X-Requested-With": "XMLHttpRequest",
             "Referer": `${domain}/video/${videoId}`
           },
-          body: postData.toString()
+          body: postData.toString(),
+          signal: AbortSignal.timeout(15000)
         });
 
         const data: any = await response.json();
@@ -163,7 +153,8 @@ export default {
           headers: {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
             "Referer": domain + "/"
-          }
+          },
+          signal: AbortSignal.timeout(15000)
         });
 
         const m3u8Content = await m3u8Res.text();

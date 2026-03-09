@@ -26,6 +26,7 @@ app.get("/api/extract", async (req, res) => {
     const postData = `hash=${videoId}&r=${encodeURIComponent(url)}`;
     
     const response = await axios.post(postUrl, postData, {
+      timeout: 15000,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
@@ -41,6 +42,7 @@ app.get("/api/extract", async (req, res) => {
 
     const masterM3u8Url = data.videoSource;
     const m3u8Res = await axios.get(masterM3u8Url, {
+      timeout: 15000,
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
         "Referer": domain + "/"
@@ -49,27 +51,16 @@ app.get("/api/extract", async (req, res) => {
 
     const m3u8Content = m3u8Res.data;
     
-    // Extract available languages and their URLs
+    // Extract available languages
     const languages: string[] = [];
-    const audioUrls: Record<string, string> = {};
-    let highestVideoUrl = "";
     
     const lines = m3u8Content.split('\n');
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i].trim();
       if (line.startsWith('#EXT-X-MEDIA:TYPE=AUDIO')) {
         const langMatch = line.match(/LANGUAGE="([^"]+)"/);
-        const uriMatch = line.match(/URI="([^"]+)"/);
-        if (langMatch && uriMatch) {
+        if (langMatch && !languages.includes(langMatch[1])) {
           languages.push(langMatch[1]);
-          const absoluteUri = uriMatch[1].startsWith('http') ? uriMatch[1] : `${domain}${uriMatch[1]}`;
-          audioUrls[langMatch[1]] = absoluteUri;
-        }
-      } else if (line.startsWith('#EXT-X-STREAM-INF')) {
-        const nextLine = lines[i + 1]?.trim();
-        if (nextLine && !nextLine.startsWith('#')) {
-          const absoluteUri = nextLine.startsWith('http') ? nextLine : `${domain}${nextLine}`;
-          highestVideoUrl = absoluteUri;
         }
       }
     }
@@ -84,8 +75,6 @@ app.get("/api/extract", async (req, res) => {
     for (const lang of languages) {
       files[lang] = {
         m3u8_url: `${appUrl}/cache/${videoId}/${lang}_master.m3u8`,
-        video_file_url: highestVideoUrl,
-        audio_file_url: audioUrls[lang],
         language: lang
       };
     }
@@ -126,6 +115,7 @@ app.get("/cache/:videoId/:filename", async (req, res) => {
     const postData = `hash=${videoId}&r=${encodeURIComponent(domain + "/video/" + videoId)}`;
     
     const response = await axios.post(postUrl, postData, {
+      timeout: 15000,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
@@ -141,6 +131,7 @@ app.get("/cache/:videoId/:filename", async (req, res) => {
 
     const masterM3u8Url = data.videoSource;
     const m3u8Res = await axios.get(masterM3u8Url, {
+      timeout: 15000,
       headers: {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36",
         "Referer": domain + "/"
