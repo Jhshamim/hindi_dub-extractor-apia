@@ -66,7 +66,8 @@ app.get("/api/extract", async (req, res) => {
     }
 
     const host = req.get('host');
-    const protocol = req.protocol || 'http';
+    const forwardedProto = req.headers['x-forwarded-proto'];
+    const protocol = (Array.isArray(forwardedProto) ? forwardedProto[0] : forwardedProto) || req.protocol || 'http';
     // Use APP_URL if available (for AI Studio environment), otherwise use the request host
     // For Vercel, req.get('host') will be the vercel domain
     const appUrl = process.env.APP_URL || `${protocol}://${host}`;
