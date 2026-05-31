@@ -1,4 +1,4 @@
-name = "hindi-dub-extractor"
+name = "hindi-dub-extractor-apia-1"
 main = "worker.ts"
 compatibility_date = "2024-03-08"
 
