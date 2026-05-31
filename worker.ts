@@ -5,7 +5,7 @@ export interface Env {
 const PROXY_URL = "https://extract-m3u8-proxy.jahinalamshamim.workers.dev/proxy?url=";
 
 export default {
-  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: any): Promise<Response> {
     const url = new URL(request.url);
     
     // Setup CORS headers
@@ -178,7 +178,7 @@ export default {
               if (uriMatch) {
                 const originalUri = uriMatch[1];
                 const absoluteUri = originalUri.startsWith('http') ? originalUri : `${domain}${originalUri}`;
-                const proxiedUri = `${PROXY_URL}${absoluteUri}`;
+                const proxiedUri = `${PROXY_URL}${encodeURIComponent(absoluteUri)}`;
                 
                 let newLine = line.replace(`URI="${originalUri}"`, `URI="${proxiedUri}"`);
                 newLine = newLine.replace(/DEFAULT=[A-Z]+/, 'DEFAULT=YES');
@@ -193,10 +193,16 @@ export default {
             i++;
             const uriLine = lines[i].trim();
             const absoluteUri = uriLine.startsWith('http') ? uriLine : `${domain}${uriLine}`;
-            const proxiedUri = `${PROXY_URL}${absoluteUri}`;
+            const proxiedUri = `${PROXY_URL}${encodeURIComponent(absoluteUri)}`;
             newLines.push(proxiedUri);
           } else {
-            newLines.push(line);
+            // Ensure EXT-X-INDEPENDENT-SEGMENTS is present
+            if (line === '#EXTM3U') {
+              newLines.push(line);
+              newLines.push('#EXT-X-INDEPENDENT-SEGMENTS');
+            } else if (line !== '#EXT-X-INDEPENDENT-SEGMENTS') {
+              newLines.push(line);
+            }
           }
           i++;
         }
